@@ -8,7 +8,7 @@
 
 // Define constants based on the LiDAR data protocol
 #define START_CHARACTER 0x54
-#define DATA_LENGTH 44
+#define DATA_LENGTH 47
 
 int serial_port;
 
