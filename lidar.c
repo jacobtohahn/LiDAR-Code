@@ -5,8 +5,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <termios.h>
-#include "cv.h" 
-#include "highgui.h" 
+#include <SDL2/SDL.h>
 
 // Define constants based on the LiDAR data protocol
 #define START_CHARACTER 0x54
@@ -130,20 +129,26 @@ void visualizeLidarData(unsigned char *data) {
         groups[i][1] = data[7 + i*3];
         groups[i][2] = data[8 + i*3];
     }
-    // Create a black GUI window
-    cv::Mat image = cv::Mat::zeros(500, 500, CV_8UC3);
+    // Create a black GUI window using SDL
+    SDL_Window *window;
+    SDL_Renderer *renderer;
+    SDL_Init(SDL_INIT_VIDEO);
+    SDL_CreateWindowAndRenderer(500, 500, 0, &window, &renderer);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderClear(renderer);
     for (int i = 0; i < 12; i++) {
         int distance = (groups[i][1] << 8) | groups[i][0];
         int angle = startAngle + i * 30; // Assuming each group represents a 30 degree slice
         // Convert polar coordinates to Cartesian
         int x = distance * cos(angle * M_PI / 180.0);
         int y = distance * sin(angle * M_PI / 180.0);
-        // Draw the point on the image
-        cv::circle(image, cv::Point(x, y), 1, cv::Scalar(255, 255, 255), -1);
+        // Draw the point on the window
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        SDL_RenderDrawPoint(renderer, x, y);
     }
-    // Display the image
-    cv::imshow("LiDAR Data", image);
-    cv::waitKey(1);
+    // Display the window
+    SDL_RenderPresent(renderer);
+    SDL_Delay(1);
 }
 
 
