@@ -72,10 +72,8 @@ void readLidarDataPacket(unsigned char *dataPacket) {
     int bytesRead;
 
     while ((bytesRead = read(serial_port, &read_byte, 1)) > 0) {
-        printf("Read byte: 0x%X\n", read_byte); // Print each byte read for debugging
 
         if (read_byte == START_CHARACTER) {
-            printf("Start character detected.\n");
             printf("Starting new packet.\n");
             packetIndex = 0;
             isReadingPacket = 1;
@@ -83,11 +81,9 @@ void readLidarDataPacket(unsigned char *dataPacket) {
 
         if (isReadingPacket) {
             dataPacket[packetIndex] = read_byte;
-            printf("Storing byte 0x%X at index %d\n", read_byte, packetIndex);
             packetIndex++;
 
             if (packetIndex == DATA_LENGTH) {
-                printf("Packet complete. Packet size: %d\n", packetIndex);
                 printf("End of current packet, processing data...\n");
                 processLidarData(dataPacket);
                 isReadingPacket = 0;
@@ -115,7 +111,7 @@ void processLidarData(unsigned char *data) {
         groups[i][2] = data[8 + i*3];
     }
     for (int i = 0; i < 14; i++) {
-        printf("Group %d: %d, %d, %d\n", i, groups[i][0], groups[i][1], groups[i][2]);
+        // printf("Group %d: %d, %d, %d\n", i, groups[i][0], groups[i][1], groups[i][2]);
         int distance = (groups[i][1] << 8) | groups[i][0];
         printf("Distance: %d\n", distance);
     }
