@@ -8,7 +8,7 @@
 
 // Define constants based on the LiDAR data protocol
 #define START_CHARACTER 0x54
-#define DATA_LENGTH 9
+#define DATA_LENGTH 44
 
 int serial_port;
 
@@ -114,7 +114,7 @@ void processLidarData(unsigned char *data) {
 int main() {
     initializeLidar();
 
-    unsigned char dataPacket[9]; // Adjust size as necessary based on the data packet structure
+    unsigned char dataPacket[DATA_LENGTH]; // Adjust size as necessary based on the data packet structure
 
     while (1) {
         readLidarDataPacket(dataPacket);
