@@ -138,6 +138,13 @@ void processLidarData(unsigned char *data) {
 void visualizeLidarData(unsigned char *data) {
     int startAngle = (data[5] << 8) | data[4];
     startAngle = startAngle / 100;
+    // Get the end angle from the data
+    int endAngle = (data[43] << 8) | data[42];
+    endAngle = endAngle / 100;
+
+    // Calculate the angle increment
+    int angleIncrement = (endAngle - startAngle) / (12 - 1);
+
     unsigned char groups[12][3];
     for (int i = 0; i < 12; i++) {
         groups[i][0] = data[6 + i*3];
@@ -157,7 +164,7 @@ void visualizeLidarData(unsigned char *data) {
     for (int i = 0; i < 12; i++) {
         int distance = (groups[i][1] << 8) | groups[i][0];
         if (distance < 1000) {
-            int angle = startAngle + i * 30; // Assuming each group represents a 30 degree slice
+            int angle = startAngle + i * angleIncrement; // Use the angle increment
             // Convert polar coordinates to Cartesian
             int x = center_x + (int)(distance * cos(angle * M_PI / 180.0));
             int y = center_y - (int)(distance * sin(angle * M_PI / 180.0)); // Invert y to account for SDL's top-left origin
