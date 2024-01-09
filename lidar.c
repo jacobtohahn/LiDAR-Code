@@ -117,6 +117,8 @@ void processLidarData(unsigned char *data) {
         int quality = groups[i][2];
         printf("Distance: %d, Quality: %d\n", distance, quality);
     }
+    // After processing the data, call visualizeLidarData to update the window
+    visualizeLidarData(data);
 }
 
 // Function to visualize the LiDAR data
@@ -129,28 +131,45 @@ void visualizeLidarData(unsigned char *data) {
         groups[i][1] = data[7 + i*3];
         groups[i][2] = data[8 + i*3];
     }
-    // Create a black GUI window using SDL
+    // Initialize SDL
+    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+        fprintf(stderr, "SDL_Init Error: %s\n", SDL_GetError());
+        return;
+    }
+
+    // Create window and renderer
     SDL_Window *window;
     SDL_Renderer *renderer;
-    SDL_Init(SDL_INIT_VIDEO);
-    SDL_CreateWindowAndRenderer(500, 500, 0, &window, &renderer);
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderClear(renderer);
+    if (SDL_CreateWindowAndRenderer(500, 500, 0, &window, &renderer) != 0) {
+        fprintf(stderr, "SDL_CreateWindowAndRenderer Error: %s\n", SDL_GetError());
+        SDL_Quit();
+        return;
+    }
+
+    // Draw the point on the window
     for (int i = 0; i < 12; i++) {
         int distance = (groups[i][1] << 8) | groups[i][0];
         int angle = startAngle + i * 30; // Assuming each group represents a 30 degree slice
         // Convert polar coordinates to Cartesian
         int x = distance * cos(angle * M_PI / 180.0);
         int y = distance * sin(angle * M_PI / 180.0);
-        // Draw the point on the window
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderDrawPoint(renderer, x, y);
     }
-    // Display the window
-    SDL_RenderPresent(renderer);
-    SDL_Delay(1);
-}
 
+    // Event processing
+    SDL_Event e;
+    while (SDL_PollEvent(&e)) {
+        if (e.type == SDL_QUIT) {
+            SDL_DestroyRenderer(renderer);
+            SDL_DestroyWindow(window);
+            SDL_Quit();
+            exit(0);
+        }
+    }
+    // Update your rendering if needed
+    SDL_RenderPresent(renderer);
+}
 
 int main() {
     initializeLidar();
