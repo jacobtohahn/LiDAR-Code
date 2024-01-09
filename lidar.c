@@ -64,7 +64,7 @@ void readLidarDataPacket(unsigned char *dataPacket) {
     unsigned char read_byte;
     read(serial_port, &read_byte, 1);
     if (read_byte == START_CHARACTER) { 
-        printf("Start character found\n");
+        printf(read_byte);
     }
 }
 
