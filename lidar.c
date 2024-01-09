@@ -6,12 +6,25 @@
 #include <errno.h>
 #include <termios.h>
 #include <SDL2/SDL.h>
+#include <signal.h>
 
 // Define constants based on the LiDAR data protocol
 #define START_CHARACTER 0x54
 #define DATA_LENGTH 47
 
 int serial_port;
+
+// Global variables for SDL window and renderer
+SDL_Window *window = NULL;
+SDL_Renderer *renderer = NULL;
+
+// Global variable to control the main loop
+volatile sig_atomic_t keep_running = 1;
+
+// Signal handler for SIGINT
+void handle_sigint(int sig) {
+    keep_running = 0;
+}
 
 // Function to initialize the LiDAR sensor
 void initializeLidar() {
@@ -131,20 +144,6 @@ void visualizeLidarData(unsigned char *data) {
         groups[i][1] = data[7 + i*3];
         groups[i][2] = data[8 + i*3];
     }
-    // Initialize SDL
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        fprintf(stderr, "SDL_Init Error: %s\n", SDL_GetError());
-        return;
-    }
-
-    // Create window and renderer
-    SDL_Window *window;
-    SDL_Renderer *renderer;
-    if (SDL_CreateWindowAndRenderer(500, 500, 0, &window, &renderer) != 0) {
-        fprintf(stderr, "SDL_CreateWindowAndRenderer Error: %s\n", SDL_GetError());
-        SDL_Quit();
-        return;
-    }
 
     // Draw the point on the window
     for (int i = 0; i < 12; i++) {
@@ -172,11 +171,28 @@ void visualizeLidarData(unsigned char *data) {
 }
 
 int main() {
+    // Set up signal handler
+    signal(SIGINT, handle_sigint);
+
+    // Initialize LiDAR
     initializeLidar();
+
+    // Initialize SDL
+    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+        fprintf(stderr, "SDL_Init Error: %s\n", SDL_GetError());
+        return 1;
+    }
+
+    // Create window and renderer
+    if (SDL_CreateWindowAndRenderer(500, 500, 0, &window, &renderer) != 0) {
+        fprintf(stderr, "SDL_CreateWindowAndRenderer Error: %s\n", SDL_GetError());
+        SDL_Quit();
+        return 1;
+    }
 
     unsigned char dataPacket[DATA_LENGTH]; // Adjust size as necessary based on the data packet structure
 
-    while (1) {
+    while (keep_running) {
         readLidarDataPacket(dataPacket);
         processLidarData(dataPacket);
         visualizeLidarData(dataPacket);
@@ -184,6 +200,13 @@ int main() {
         usleep(1); // Example: 10us delay
     }
 
-    close(serial_port); // Close the serial port when done
+    // Clean up SDL
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+
+    // Close the serial port
+    close(serial_port);
+
     return 0;
 }
