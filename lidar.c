@@ -108,7 +108,8 @@ void readLidarDataPacket(unsigned char *dataPacket) {
 // Function to process the LiDAR data and convert it into a top-down view
 void processLidarData(unsigned char *data) {
     // Implement data processing logic here
-    // Example: int distance = (data[2] << 8) | data[3];
+    int startAngle = (data[5] << 8) | data[4];
+    printf("Start angle: %d\n", startAngle);
 }
 
 int main() {
