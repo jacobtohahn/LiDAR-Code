@@ -229,7 +229,7 @@ int main() {
         processLidarData(dataPacket);
         visualizeLidarData(dataPacket);
 
-        usleep(1); // Example: 10us delay
+        usleep(10); // Example: 10us delay
     }
 
     // Clean up SDL
