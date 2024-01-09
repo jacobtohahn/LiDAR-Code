@@ -160,6 +160,10 @@ void visualizeLidarData(unsigned char *data) {
     int center_x = window_width / 2;
     int center_y = window_height / 2;
 
+    // Clear the renderer to remove old points
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Set draw color to black
+    SDL_RenderClear(renderer); // Clear the renderer with the current draw color
+
     // Draw the point on the window with the origin at the center
     for (int i = 0; i < 12; i++) {
         int distance = (groups[i][1] << 8) | groups[i][0];
