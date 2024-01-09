@@ -28,8 +28,8 @@ void readLidarDataPacket(unsigned char *dataPacket) {
     // For example, read from the serial port into dataPacket
     unsigned char read_byte;
     read(serial_port, &read_byte, 1);
-    if (read_byte == 0x54) { 
-        printf("START: " + read_byte);
+    if (read_byte == START_CHARACTER) { 
+        printf("START: %x\n", read_byte);
     }
     else {
         printf("%x\n", read_byte);
