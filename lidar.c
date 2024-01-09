@@ -21,8 +21,8 @@ void initializeLidar() {
     struct termios tty;
 
     // Read in existing settings, and handle any error
-    if(tcgetattr(serial_port, &tty) != 0) {
-        printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
+    if(serial_port < 0) {
+        printf("Error %i from open: %s\n", errno, strerror(errno));
         exit(1);
     }
 
