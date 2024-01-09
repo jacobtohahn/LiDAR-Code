@@ -134,7 +134,7 @@ void processLidarData(unsigned char *data) {
     visualizeLidarData(data);
 }
 
-// Function to visualize the LiDAR data
+// Function to visualize the LiDAR data with the origin at the center of the GUI
 void visualizeLidarData(unsigned char *data) {
     int startAngle = (data[5] << 8) | data[4];
     startAngle = startAngle / 100;
@@ -145,15 +145,25 @@ void visualizeLidarData(unsigned char *data) {
         groups[i][2] = data[8 + i*3];
     }
 
-    // Draw the point on the window
+    // Get the window size
+    int window_width, window_height;
+    SDL_GetWindowSize(window, &window_width, &window_height);
+
+    // Calculate the center of the window
+    int center_x = window_width / 2;
+    int center_y = window_height / 2;
+
+    // Draw the point on the window with the origin at the center
     for (int i = 0; i < 12; i++) {
         int distance = (groups[i][1] << 8) | groups[i][0];
-        int angle = startAngle + i * 30; // Assuming each group represents a 30 degree slice
-        // Convert polar coordinates to Cartesian
-        int x = distance * cos(angle * M_PI / 180.0);
-        int y = distance * sin(angle * M_PI / 180.0);
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        SDL_RenderDrawPoint(renderer, x, y);
+        if (distance < 1000) {
+            int angle = startAngle + i * 30; // Assuming each group represents a 30 degree slice
+            // Convert polar coordinates to Cartesian
+            int x = center_x + (int)(distance * cos(angle * M_PI / 180.0));
+            int y = center_y - (int)(distance * sin(angle * M_PI / 180.0)); // Invert y to account for SDL's top-left origin
+            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+            SDL_RenderDrawPoint(renderer, x, y);
+        }
     }
 
     // Event processing
