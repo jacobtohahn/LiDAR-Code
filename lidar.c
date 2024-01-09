@@ -28,12 +28,11 @@ void readLidarDataPacket(unsigned char *dataPacket) {
     // For example, read from the serial port into dataPacket
     unsigned char read_byte;
     read(serial_port, &read_byte, 1);
-    printf("%x\n", read_byte);
     if (read_byte == 0x54) { 
         printf("START: " + read_byte);
     }
     else {
-        printf(read_byte);
+        printf("%x\n", read_byte);
     }
 }
 
@@ -52,7 +51,7 @@ int main() {
         readLidarDataPacket(dataPacket);
         processLidarData(dataPacket);
 
-        // usleep(10); // Example: 10us delay
+        usleep(10); // Example: 10us delay
     }
 
     close(serial_port); // Close the serial port when done
