@@ -76,12 +76,6 @@ void readLidarDataPacket(unsigned char *dataPacket) {
 
         if (read_byte == START_CHARACTER) {
             printf("Start character detected.\n");
-
-            if (isReadingPacket) {
-                printf("End of current packet, processing data...\n");
-                processLidarData(dataPacket);
-            }
-
             printf("Starting new packet.\n");
             packetIndex = 0;
             isReadingPacket = 1;
@@ -94,6 +88,8 @@ void readLidarDataPacket(unsigned char *dataPacket) {
 
             if (packetIndex == DATA_LENGTH) {
                 printf("Packet complete. Packet size: %d\n", packetIndex);
+                printf("End of current packet, processing data...\n");
+                processLidarData(dataPacket);
                 isReadingPacket = 0;
                 packetIndex = 0;
             }
@@ -121,7 +117,7 @@ int main() {
         readLidarDataPacket(dataPacket);
         processLidarData(dataPacket);
 
-        usleep(10); // Example: 10us delay
+        usleep(1); // Example: 10us delay
     }
 
     close(serial_port); // Close the serial port when done
