@@ -108,6 +108,17 @@ void processLidarData(unsigned char *data) {
     // Map the startAngle value between 0 and 360
     startAngle = startAngle / 100;
     printf("Start angle: %d\n", startAngle);
+    unsigned char groups[14][3];
+    for (int i = 0; i < 14; i++) {
+        groups[i][0] = data[6 + i*3];
+        groups[i][1] = data[7 + i*3];
+        groups[i][2] = data[8 + i*3];
+    }
+    for (int i = 0; i < 14; i++) {
+        printf("Group %d: %d, %d, %d\n", i, groups[i][0], groups[i][1], groups[i][2]);
+        int distance = (groups[i][1] << 8) | groups[i][0];
+        printf("Distance: %d\n", distance);
+    }
 }
 
 int main() {
