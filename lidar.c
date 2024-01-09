@@ -105,6 +105,8 @@ void readLidarDataPacket(unsigned char *dataPacket) {
 void processLidarData(unsigned char *data) {
     // Implement data processing logic here
     int startAngle = (data[5] << 8) | data[4];
+    // Map the startAngle value between 0 and 360
+    startAngle = startAngle % 360;
     printf("Start angle: %d\n", startAngle);
 }
 
