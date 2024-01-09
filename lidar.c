@@ -5,7 +5,8 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <termios.h>
-#include <opencv2/opencv.hpp> // Include the OpenCV header file
+#include "cv.h" 
+#include "highgui.h" 
 
 // Define constants based on the LiDAR data protocol
 #define START_CHARACTER 0x54
