@@ -130,6 +130,21 @@ void processLidarData(unsigned char *data) {
         int quality = groups[i][2];
         printf("Distance: %d, Quality: %d\n", distance, quality);
     }
+
+    // Check if we have completed a rotation
+    static int lastEndAngle = 0;
+    int endAngle = (data[43] << 8) | data[42];
+    endAngle = endAngle / 100;
+
+    // If the end angle is less than the last end angle, we assume a rotation has completed
+    if (endAngle < lastEndAngle) {
+        // Clear the renderer to remove old points
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Set draw color to black
+        SDL_RenderClear(renderer); // Clear the renderer with the current draw color
+    }
+
+    lastEndAngle = endAngle;
+
     // After processing the data, call visualizeLidarData to update the window
     visualizeLidarData(data);
 }
@@ -159,10 +174,6 @@ void visualizeLidarData(unsigned char *data) {
     // Calculate the center of the window
     int center_x = window_width / 2;
     int center_y = window_height / 2;
-
-    // Clear the renderer to remove old points
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Set draw color to black
-    SDL_RenderClear(renderer); // Clear the renderer with the current draw color
 
     // Draw the point on the window with the origin at the center
     for (int i = 0; i < 12; i++) {
