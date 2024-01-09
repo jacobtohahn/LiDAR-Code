@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <termios.h>
+#include <opencv2/opencv.hpp> // Include the OpenCV header file
 
 // Define constants based on the LiDAR data protocol
 #define START_CHARACTER 0x54
@@ -118,6 +119,33 @@ void processLidarData(unsigned char *data) {
     }
 }
 
+// Function to visualize the LiDAR data
+void visualizeLidarData(unsigned char *data) {
+    int startAngle = (data[5] << 8) | data[4];
+    startAngle = startAngle / 100;
+    unsigned char groups[12][3];
+    for (int i = 0; i < 12; i++) {
+        groups[i][0] = data[6 + i*3];
+        groups[i][1] = data[7 + i*3];
+        groups[i][2] = data[8 + i*3];
+    }
+    // Create a black GUI window
+    cv::Mat image = cv::Mat::zeros(500, 500, CV_8UC3);
+    for (int i = 0; i < 12; i++) {
+        int distance = (groups[i][1] << 8) | groups[i][0];
+        int angle = startAngle + i * 30; // Assuming each group represents a 30 degree slice
+        // Convert polar coordinates to Cartesian
+        int x = distance * cos(angle * M_PI / 180.0);
+        int y = distance * sin(angle * M_PI / 180.0);
+        // Draw the point on the image
+        cv::circle(image, cv::Point(x, y), 1, cv::Scalar(255, 255, 255), -1);
+    }
+    // Display the image
+    cv::imshow("LiDAR Data", image);
+    cv::waitKey(1);
+}
+
+
 int main() {
     initializeLidar();
 
@@ -126,6 +154,7 @@ int main() {
     while (1) {
         readLidarDataPacket(dataPacket);
         processLidarData(dataPacket);
+        visualizeLidarData(dataPacket);
 
         usleep(1); // Example: 10us delay
     }
