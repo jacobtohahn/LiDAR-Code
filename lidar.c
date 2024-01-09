@@ -65,42 +65,43 @@ void initializeLidar() {
 
 // Function to read a data packet from the LiDAR sensor
 void readLidarDataPacket(unsigned char *dataPacket) {
-    static int packetIndex = 0; // Index to keep track of the position in the data packet
-    static int isReadingPacket = 0; // Flag to check if we are in the middle of reading a packet
+    static int packetIndex = 0;
+    static int isReadingPacket = 0;
 
     unsigned char read_byte;
     int bytesRead;
 
-    // Read bytes one at a time and check for the start character
     while ((bytesRead = read(serial_port, &read_byte, 1)) > 0) {
+        printf("Read byte: 0x%X\n", read_byte); // Print each byte read for debugging
+
         if (read_byte == START_CHARACTER) {
+            printf("Start character detected.\n");
+
             if (isReadingPacket) {
-                // We've reached the start of a new packet, so the current one is complete
-                // Process the current packet before resetting
+                printf("End of current packet, processing data...\n");
                 processLidarData(dataPacket);
             }
-            // Start a new packet
+
+            printf("Starting new packet.\n");
             packetIndex = 0;
             isReadingPacket = 1;
         }
 
         if (isReadingPacket) {
-            // Store the byte in the data packet array
-            dataPacket[packetIndex++] = read_byte;
+            dataPacket[packetIndex] = read_byte;
+            printf("Storing byte 0x%X at index %d\n", read_byte, packetIndex);
+            packetIndex++;
 
-            // If the packet is complete (reached the expected DATA_LENGTH), reset
             if (packetIndex == DATA_LENGTH) {
-                isReadingPacket = 0; // Reset the flag
-                packetIndex = 0; // Reset the index for the next packet
-                // Process the packet if needed, or it can be processed outside this function
+                printf("Packet complete. Packet size: %d\n", packetIndex);
+                isReadingPacket = 0;
+                packetIndex = 0;
             }
         }
     }
 
-    // Handle read error if bytesRead < 0
     if (bytesRead < 0) {
         printf("Error %i from read: %s\n", errno, strerror(errno));
-        // Handle the error as appropriate
     }
 }
 
