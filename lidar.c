@@ -9,7 +9,6 @@
 // Define constants based on the LiDAR data protocol
 #define START_CHARACTER 0x54
 #define DATA_LENGTH 9
-#define MAX_PACKETS 100
 
 int serial_port;
 
@@ -66,44 +65,43 @@ void initializeLidar() {
 
 // Function to read a data packet from the LiDAR sensor
 void readLidarDataPacket(unsigned char *dataPacket) {
-    unsigned char byte;
-    unsigned char buffer[DATA_LENGTH]; // Assuming DATA_LENGTH is the max size of data between start bytes
-    int bufferIndex = 0;
-    int readingPacket = 0;
+    static int packetIndex = 0; // Index to keep track of the position in the data packet
+    static int isReadingPacket = 0; // Flag to check if we are in the middle of reading a packet
+
+    unsigned char read_byte;
     int bytesRead;
 
-    // List to hold data tuples (in C, we'll use an array of structs or arrays)
-    // Assuming a maximum number of packets for simplicity
-    unsigned char dataTuples[MAX_PACKETS][DATA_LENGTH];
-    int tupleCount = 0;
-
-    while ((bytesRead = read(serial_port, &byte, 1)) > 0) {
-        if (byte == START_CHARACTER) {
-            if (readingPacket) {
-                // Convert buffer to tuple and store it
-                memcpy(dataTuples[tupleCount], buffer, bufferIndex);
-                tupleCount++;
-                bufferIndex = 0;
+    // Read bytes one at a time and check for the start character
+    while ((bytesRead = read(serial_port, &read_byte, 1)) > 0) {
+        if (read_byte == START_CHARACTER) {
+            if (isReadingPacket) {
+                // We've reached the start of a new packet, so the current one is complete
+                // Process the current packet before resetting
+                processLidarData(dataPacket);
             }
-            readingPacket = 1;
-        } else if (readingPacket) {
-            // Store byte in buffer
-            if (bufferIndex < DATA_LENGTH) {
-                buffer[bufferIndex++] = byte;
-            } else {
-                // Handle error: data packet is too large
+            // Start a new packet
+            packetIndex = 0;
+            isReadingPacket = 1;
+        }
+
+        if (isReadingPacket) {
+            // Store the byte in the data packet array
+            dataPacket[packetIndex++] = read_byte;
+
+            // If the packet is complete (reached the expected DATA_LENGTH), reset
+            if (packetIndex == DATA_LENGTH) {
+                isReadingPacket = 0; // Reset the flag
+                packetIndex = 0; // Reset the index for the next packet
+                // Process the packet if needed, or it can be processed outside this function
             }
         }
     }
 
-    // Handle the case where the last packet is not followed by a start byte
-    if (bufferIndex > 0) {
-        memcpy(dataTuples[tupleCount], buffer, bufferIndex);
-        tupleCount++;
+    // Handle read error if bytesRead < 0
+    if (bytesRead < 0) {
+        printf("Error %i from read: %s\n", errno, strerror(errno));
+        // Handle the error as appropriate
     }
-
-    // Now dataTuples contains all the data packets
-    // Do something with dataTuples here, like processing or storing them
 }
 
 // Function to process the LiDAR data and convert it into a top-down view
